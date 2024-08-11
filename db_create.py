@@ -140,7 +140,7 @@ def get_steam_games_parallel(base_url, count_per_page=100, max_pages=5):
     all_games_details = []
     urls = [f"{base_url}&count={count_per_page}&page={page}" for page in range(1, max_pages + 1)]
 
-    with ThreadPoolExecutor(max_workers=50) as executor:
+    with ThreadPoolExecutor(max_workers=5) as executor:
         future_to_url = {executor.submit(fetch_page, url): url for url in urls}
 
         for future in as_completed(future_to_url):
@@ -155,16 +155,21 @@ def get_steam_games_parallel(base_url, count_per_page=100, max_pages=5):
     return all_games_details
 
 
-# Base URL for the search results page
-search_url = "https://store.steampowered.com/search/?sort_by=Name_ASC"
+def update_db():
+    # Base URL for the search results page
+    search_url = "https://store.steampowered.com/search/?sort_by=Name_ASC"
 
-# Fetch and print items
-games = get_steam_games_parallel(search_url, count_per_page=100, max_pages=50)
+    # Fetch and print items
+    games = get_steam_games_parallel(search_url, count_per_page=100, max_pages=5)
 
-# Create table with current date and hour
-table_name_o = create_table_for_current_datetime()
+    # Create table with current date and hour
+    table_name_o = create_table_for_current_datetime()
 
-# Insert data into the table
-insert_data_into_table(table_name_o, games)
+    # Insert data into the table
+    insert_data_into_table(table_name_o, games)
 
-print(f"Data successfully stored in table '{table_name_o}'")
+    print(f"Data successfully stored in table '{table_name_o}'")
+
+
+if __name__ == '__main__':
+    update_db()

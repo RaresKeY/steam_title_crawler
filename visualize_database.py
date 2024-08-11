@@ -30,6 +30,7 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from datetime import datetime
 import matplotlib.dates as mdates
+import db_create
 
 
 class SortableTreeview(ttk.Treeview):
@@ -274,86 +275,93 @@ def plot_price_history(dates, prices):
     canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
 
 
-# Create the Tkinter root window
-root = tk.Tk()
-root.title("Steam Games Database Viewer")
+if __name__ == '__main__':
 
-# Create a Frame for the Table
-frame = ttk.Frame(root)
-frame.pack(fill=tk.BOTH, expand=True)
+    print('Updating DB...')
+    db_create.update_db()
 
-# Fetch and display table names
-table_names = fetch_table_names()
-table_selection = tk.StringVar()
-table_menu = ttk.Combobox(root, textvariable=table_selection, values=table_names)
-table_menu.bind('<<ComboboxSelected>>', on_table_select)
-table_menu.pack(padx=10, pady=10)
+    print('Initializing GUI...')
 
-# Create the Treeview (Table) to display the data
-tree = SortableTreeview(frame, columns=("No.", "Name", "Price & Currency", "URL"), show='headings')
+    # Create the Tkinter root window
+    root = tk.Tk()
+    root.title("Steam Games Database Viewer")
 
-# Set column headings
-tree.heading("No.", text="No.", command=lambda: tree.on_heading_click("No."))
-tree.heading("Name", text="Name", command=lambda: tree.on_heading_click("Name"))
-tree.heading("Price & Currency", text="Price & Currency", command=lambda: tree.on_heading_click("Price & Currency"))
-tree.heading("URL", text="URL", command=lambda: tree.on_heading_click("URL"))
+    # Create a Frame for the Table
+    frame = ttk.Frame(root)
+    frame.pack(fill=tk.BOTH, expand=True)
 
-tree.column("No.", width=50)
-tree.column("Name", width=150)
-tree.column("Price & Currency", width=150)
-tree.column("URL", width=200)
+    # Fetch and display table names
+    table_names = fetch_table_names()
+    table_selection = tk.StringVar()
+    table_menu = ttk.Combobox(root, textvariable=table_selection, values=table_names)
+    table_menu.bind('<<ComboboxSelected>>', on_table_select)
+    table_menu.pack(padx=10, pady=10)
 
-tree.grid(row=0, column=0, sticky='nsew')
+    # Create the Treeview (Table) to display the data
+    tree = SortableTreeview(frame, columns=("No.", "Name", "Price & Currency", "URL"), show='headings')
 
-# Create and place Scrollbars
-vsb = ttk.Scrollbar(frame, orient="vertical", command=tree.yview)
-vsb.grid(row=0, column=1, sticky='ns')
-tree.configure(yscrollcommand=vsb.set)
+    # Set column headings
+    tree.heading("No.", text="No.", command=lambda: tree.on_heading_click("No."))
+    tree.heading("Name", text="Name", command=lambda: tree.on_heading_click("Name"))
+    tree.heading("Price & Currency", text="Price & Currency", command=lambda: tree.on_heading_click("Price & Currency"))
+    tree.heading("URL", text="URL", command=lambda: tree.on_heading_click("URL"))
 
-hsb = ttk.Scrollbar(frame, orient="horizontal", command=tree.xview)
-hsb.grid(row=1, column=0, sticky='ew')
-tree.configure(xscrollcommand=hsb.set)
+    tree.column("No.", width=50)
+    tree.column("Name", width=150)
+    tree.column("Price & Currency", width=150)
+    tree.column("URL", width=200)
 
-tree.configure(height=20)  # Adjust based on your requirement
+    tree.grid(row=0, column=0, sticky='nsew')
 
-# Create Labels to show details of the selected item
-details_frame = ttk.Frame(root)
-details_frame.pack(fill=tk.X, padx=10, pady=10)
+    # Create and place Scrollbars
+    vsb = ttk.Scrollbar(frame, orient="vertical", command=tree.yview)
+    vsb.grid(row=0, column=1, sticky='ns')
+    tree.configure(yscrollcommand=vsb.set)
 
-game_name = tk.StringVar()
-game_price = tk.StringVar()
-game_url = tk.StringVar()
+    hsb = ttk.Scrollbar(frame, orient="horizontal", command=tree.xview)
+    hsb.grid(row=1, column=0, sticky='ew')
+    tree.configure(xscrollcommand=hsb.set)
 
-tk.Label(details_frame, text="Game Name:").grid(row=0, column=0, sticky=tk.W)
-tk.Label(details_frame, textvariable=game_name).grid(row=0, column=1, sticky=tk.W)
+    tree.configure(height=20)  # Adjust based on your requirement
 
-tk.Label(details_frame, text="Price & Currency:").grid(row=1, column=0, sticky=tk.W)
-tk.Label(details_frame, textvariable=game_price).grid(row=1, column=1, sticky=tk.W)
+    # Create Labels to show details of the selected item
+    details_frame = ttk.Frame(root)
+    details_frame.pack(fill=tk.X, padx=10, pady=10)
 
-tk.Label(details_frame, text="URL:").grid(row=2, column=0, sticky=tk.W)
-url_label = tk.Label(details_frame, textvariable=game_url, fg='blue', cursor="hand2", width=100)
-url_label.grid(row=2, column=1, sticky=tk.W)
-url_label.bind("<Button-1>", open_url)
+    game_name = tk.StringVar()
+    game_price = tk.StringVar()
+    game_url = tk.StringVar()
 
-# Create Frame for Matplotlib plot
-plot_frame = ttk.Frame(root)
-plot_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+    tk.Label(details_frame, text="Game Name:").grid(row=0, column=0, sticky=tk.W)
+    tk.Label(details_frame, textvariable=game_name).grid(row=0, column=1, sticky=tk.W)
 
-# Bind selection event to show details and plot price history
-tree.bind('<<TreeviewSelect>>', on_item_select)
+    tk.Label(details_frame, text="Price & Currency:").grid(row=1, column=0, sticky=tk.W)
+    tk.Label(details_frame, textvariable=game_price).grid(row=1, column=1, sticky=tk.W)
 
-# Adjust grid weights
-frame.grid_rowconfigure(0, weight=1)
-frame.grid_columnconfigure(0, weight=1)
+    tk.Label(details_frame, text="URL:").grid(row=2, column=0, sticky=tk.W)
+    url_label = tk.Label(details_frame, textvariable=game_url, fg='blue', cursor="hand2", width=100)
+    url_label.grid(row=2, column=1, sticky=tk.W)
+    url_label.bind("<Button-1>", open_url)
 
-plot_frame.grid_rowconfigure(0, weight=1)
-plot_frame.grid_columnconfigure(0, weight=1)
+    # Create Frame for Matplotlib plot
+    plot_frame = ttk.Frame(root)
+    plot_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
-# Automatically select the latest table
-latest_table = get_latest_table()
-if latest_table:
-    table_selection.set(latest_table)
-    on_table_select(None)
+    # Bind selection event to show details and plot price history
+    tree.bind('<<TreeviewSelect>>', on_item_select)
 
-# Run the Tkinter event loop
-root.mainloop()
+    # Adjust grid weights
+    frame.grid_rowconfigure(0, weight=1)
+    frame.grid_columnconfigure(0, weight=1)
+
+    plot_frame.grid_rowconfigure(0, weight=1)
+    plot_frame.grid_columnconfigure(0, weight=1)
+
+    # Automatically select the latest table
+    latest_table = get_latest_table()
+    if latest_table:
+        table_selection.set(latest_table)
+        on_table_select(None)
+
+    # Run the Tkinter event loop
+    root.mainloop()
